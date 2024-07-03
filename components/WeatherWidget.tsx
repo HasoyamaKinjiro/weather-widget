@@ -1,25 +1,39 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, CardContent } from '@mui/material';
+import { Typography } from '@mui/material';
 import {
     RootContainer,
-    WeatherCard,
-    WeatherCards,
     WeatherTodayCard,
     WeatherTodayIcon,
-    WeatherIcon
+    StyledCardContent
 } from '../styles/WeatherWidgetStyles';
 import { fetchWeather } from '../pages/api/weather';
+import { useWeather } from '../context/WeatherContext';
+import SkeletonWeatherWidget from './SkeletonWeatherWidget';
+import { getWeatherStyle, sizes } from '../styles/GlobalStyles';
+import WeatherWidgetCards from './WeatherWidgetCards';
 
-interface WeatherWidgetProps {
-    size: 'large' | 'medium' | 'small';
-    latitude: number | null;
-    longitude: number | null;
-}
-
-const WeatherWidget = ({ size, latitude, longitude }: WeatherWidgetProps) => {
-    const [weatherData, setWeatherData] = useState<any>(null);
+const WeatherWidget = () => {
+    const { latitude, longitude, weatherData, setWeatherData } = useWeather();
+    const [windowWidth, setWindowWidth] = useState<number>(0);
+    const [weatherStyle, setWeatherStyle] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setWindowWidth(window.innerWidth);
+
+            const handleResize = () => {
+                setWindowWidth(window.innerWidth);
+            };
+
+            window.addEventListener('resize', handleResize);
+
+            return () => {
+                window.removeEventListener('resize', handleResize);
+            };
+        }
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -39,65 +53,51 @@ const WeatherWidget = ({ size, latitude, longitude }: WeatherWidgetProps) => {
         fetchData();
     }, [latitude, longitude]);
 
-    if (loading) return <Typography>Loading...</Typography>;
+    useEffect(() => {
+        if (weatherData && weatherData.current) {
+            const weatherCondition = weatherData.current.condition.text;
+            setWeatherStyle(getWeatherStyle(weatherCondition));
+        }
+    }, [weatherData])
+
+    if (loading) return <SkeletonWeatherWidget size={windowWidth}/>;
     if (error) return <Typography>Error: {error}</Typography>;
 
-    const renderWeatherCards = () => {
-        const forecastDays =
-            size === 'large'
-                ? weatherData.forecast.forecastday.slice(1)
-                : weatherData.forecast.forecastday.slice(0, size === 'medium' ? 2 : 0);
-
-        return (
-            <WeatherCards size={size}>
-                {forecastDays.map((day, index) => (
-                    <WeatherCard key={index} size={size}>
-                        <CardContent>
-                            <Typography variant="h6">
-                                {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
-                            </Typography>
-                            <WeatherIcon
-                                src={`https:${day.day.condition.icon}`}
-                                alt="Weather Icon"
-                            />
-                            <Typography variant="body2">Max: {day.day.maxtemp_c}°C</Typography>
-                            <Typography variant="body2">Min: {day.day.mintemp_c}°C</Typography>
-                        </CardContent>
-                    </WeatherCard>
-                ))}
-            </WeatherCards>
-        );
-    };
-
     return (
-        <RootContainer size={size}>
-            <WeatherTodayCard size={size}>
-                <CardContent style={{ padding: '8px' }}>
-                    <Typography variant="h6" gutterBottom>
-                        {weatherData.location.region}
-                    </Typography>
-                    <WeatherTodayIcon
-                        src={`https:${weatherData.current.condition.icon}`}
-                        size={size}
-                        alt="Weather Icon"
-                    />
-                    <Typography variant={size === 'small' ? 'h4' : 'h4'}>{weatherData.current.temp_c}°C</Typography>
-                    <Typography variant="body1">Feels like: {weatherData.current.feelslike_c}°C</Typography>
-                    <Typography variant="body2">{weatherData.current.condition.text}</Typography>
-                </CardContent>
-                {
-                    size === 'large' &&
-                    <CardContent style={{ padding: '8px' }}>
-                        <Typography variant="body1">Max Temp: {weatherData.forecast.forecastday[0].day.maxtemp_c}°C</Typography>
-                        <Typography variant="body1">Min Temp: {weatherData.forecast.forecastday[0].day.mintemp_c}°C</Typography>
-                        <Typography variant="body1">Wind: {weatherData.current.wind_kph} km/h</Typography>
-                    </CardContent>
-                }
-            </WeatherTodayCard>
-            {renderWeatherCards()}
+        <RootContainer>
+            {weatherData && weatherData.location && (
+                <>
+                    <WeatherTodayCard backgroundColor={weatherStyle}>
+                        <StyledCardContent>
+                            <Typography variant="h6" gutterBottom>
+                                {weatherData.location.name}
+                            </Typography>
+                            {weatherData.current && (
+                                <>
+                                    <WeatherTodayIcon
+                                        src={`https:${weatherData.current.condition.icon}`}
+                                        alt="Weather Icon"
+                                    />
+                                    <Typography variant="h4">{weatherData.current.temp_c}°C</Typography>
+                                    <Typography variant="body1">Feels like: {weatherData.current.feelslike_c}°C</Typography>
+                                    <Typography variant="body2">{weatherData.current.condition.text}</Typography>
+                                </>
+                            )}
+                        </StyledCardContent>
+                        {windowWidth >= sizes.windowScale.large && weatherData.current && (
+                            <StyledCardContent>
+                                <Typography variant="body1">Max Temp: {weatherData.forecast.forecastday[0].day.maxtemp_c}°C</Typography>
+                                <Typography variant="body1">Min Temp: {weatherData.forecast.forecastday[0].day.mintemp_c}°C</Typography>
+                                <Typography variant="body1">Wind: {weatherData.current.wind_kph} km/h</Typography>
+                            </StyledCardContent>
+                        )}
+                    </WeatherTodayCard>
+                    <WeatherWidgetCards weatherData={weatherData} weatherStyle={weatherStyle} windowWidth={windowWidth} />
+                </>
+            )}
+
         </RootContainer>
     );
 };
 
 export default WeatherWidget;
-
