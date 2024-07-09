@@ -23,14 +23,25 @@ export interface WeatherResponse {
     };
 }
 
-export const fetchWeather = async (lat: number | null, lon: number  | null): Promise<WeatherResponse> => {
+export const fetchWeather = async (lat: number | null, lon: number | null): Promise<WeatherResponse> => {
     try {
-        console.log(lat, lon);
         const url = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=7`;
         const response = await axios.get(url);
-        console.log(response.data)
         return response.data;
     } catch (error: any) {
-        throw new Error(`Error fetching weather data: ${error.message}`);
+        console.error(`Error fetching weather data: ${error.message}`);
+    }
+};
+
+export const getLatLong = async (location: string): Promise<{ lat: number; lon: number }> => {
+    try {
+        const url = `https://api.weatherapi.com/v1/search.json?key=${API_KEY}&q=${encodeURIComponent(location)}`;
+        const response = await axios.get(url);
+        const data = response.data;
+
+        const { lat, lon } = data[0];
+        return { lat, lon };
+    } catch (error: any) {
+        console.error(`Error fetching weather data: ${error.message}`);
     }
 };

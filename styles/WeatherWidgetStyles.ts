@@ -1,62 +1,93 @@
-import { Container, Card } from '@mui/material';
 import { styled } from '@mui/system';
+import { globalColors, sizes } from './GlobalStyles';
+import { CardContent } from '@mui/material';
 
-interface SizeI {
-    size: 'large' | 'medium' | 'small';
-}
-
-export const RootContainer = styled(Container)(({ size }: SizeI) => ({
-    width: size === 'large' ? 500 : size === 'medium' ? 500 : 250,
-    height: size === 'large' ? 500 : size === 'medium' ? 250 : 250,
-    backgroundColor: '#1e2a38',
-    color: '#fff',
+export const RootContainer = styled('div')({
+    width: sizes.rootContainer.width,
+    height: sizes.rootContainer.height,
+    backgroundColor: globalColors.primary,
+    color: globalColors.textPrimary,
     display: 'flex',
-    flexDirection: size === 'large' ? 'column': size === 'medium' ? 'row' : 'row',
-    justifyContent: size === 'large' ? 'none': size === 'medium' ? 'space-between' : 'center',
-    padding: 16,
-    borderRadius: 8,
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-}));
+    flexDirection: 'row',
+    justifyContent: 'center',
+    padding: sizes.rootContainer.padding,
+    borderRadius: sizes.rootContainer.borderRadius,
+    boxShadow: globalColors.shadow,
+    transition: 'width 0.3s, height 0.3s, flex-direction 0.3s',
 
-export const WeatherCard = styled(Card)(({ size }: SizeI) => ({
-    width: size === 'large' ? 70 : size === 'medium' ? 100 : 100,
-    height: 175,
-    backgroundColor: '#273946',
-    color: '#fff',
+    '@media (min-width: 600px)': {
+        justifyContent: 'space-between',
+        width: sizes.rootContainer.widthMedium,
+        height: sizes.rootContainer.heightMedium
+    },
+
+    '@media (min-width: 960px)': {
+        flexDirection: 'column',
+        width: sizes.rootContainer.widthLarge,
+        height: sizes.rootContainer.heightLarge
+    }
+});
+
+export const WeatherCard = styled('div')(({ backgroundColor }) => ({
+    width: sizes.weatherCard.width,
+    height: sizes.weatherCard.height,
+    backgroundColor: backgroundColor,
+    borderRadius: sizes.weatherCard.borderRadius,
+    color: globalColors.textPrimary,
     boxShadow: 'none',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
+    transition: 'width 0.3s, height 0.3s',
+
+    '@media (min-width: 960px)': {
+        width: sizes.weatherCard.widthLarge
+    }
 }));
 
-export const WeatherCards = styled('div')(({ size }: SizeI) => ({
+export const WeatherCards = styled('div')({
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: size === 'medium' && 'center',
-    gap: size === 'medium' && 16,
-}));
+    transition: 'gap 0.3s, align-items 0.3s',
 
-export const WeatherTodayCard = styled(Card)(({ size }: SizeI) => ({
-    width: size === 'small' && 202,
-    backgroundColor: '#273946',
-    color: '#fff',
-    marginBottom: size === 'large' && 16,
-    padding: size === 'large' && 16,
+    '@media (min-width: 600px) and (max-width: 959px)': {
+        alignItems: 'center',
+        gap: sizes.gap
+    }
+});
+
+export const WeatherTodayCard = styled('div')(({ backgroundColor }) => ({
+    width: sizes.weatherTodayCard.width,
+    height: sizes.weatherTodayCard.height,
+    backgroundColor: backgroundColor,
+    color: globalColors.textPrimary,
+    borderRadius: sizes.weatherTodayCard.borderRadius,
+    marginBottom: sizes.weatherTodayCard.marginBottom,
     boxShadow: 'none',
     display: 'flex',
     justifyContent: 'space-between',
-    flex: size === 'large' ? 1 : 'unset',
+    flex: 'unset',
+    transition: 'width 0.3s, flex 0.3s',
+
+    '@media (min-width: 960px)': {
+        width: 'auto',
+        flex: sizes.weatherTodayCard.flexLarge
+    }
 }));
 
-export const WeatherTodayIcon = styled('img')(({ size }: SizeI) =>({
-    width: size === 'large' ? 64 : 64,
-    height: size === 'large' ? 64 : 64,
-    marginBottom: size === 'large' ? 16 : 0,
-}));
+export const WeatherTodayIcon = styled('img')({
+    '@media (min-width: 960px)': {
+        marginBottom: sizes.weatherTodayCard.marginBottom
+    }
+});
 
 export const WeatherIcon = styled('img')({
-    width: 32,
-    height: 32,
+    width: sizes.weatherIcon.width,
+    height: sizes.weatherIcon.height
+});
+
+export const StyledCardContent = styled(CardContent)({
+    padding: '8px'
 });
